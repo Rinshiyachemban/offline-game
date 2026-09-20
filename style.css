@@ -1,0 +1,135 @@
+* {
+  box-sizing: border-box;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(#87ceeb 0 65%, #78c850 65%);
+  overflow: hidden;
+}
+
+#game {
+  position: relative;
+  width: min(900px, 95vw);
+  height: min(420px, 70vh);
+  overflow: hidden;
+  border: 5px solid white;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 15% 20%, white 0 25px, transparent 26px),
+    radial-gradient(circle at 70% 14%, white 0 35px, transparent 36px),
+    linear-gradient(#8ed7fa 0 67%, #77c84e 67%);
+  box-shadow: 0 15px 40px #204c2988;
+}
+
+#score {
+  position: absolute;
+  z-index: 5;
+  top: 18px;
+  left: 20px;
+  color: white;
+  font-size: 25px;
+  font-weight: bold;
+  text-shadow: 2px 2px 3px #245d2b;
+}
+
+#rabbit {
+  position: absolute;
+  z-index: 3;
+  bottom: 55px;
+  left: 90px;
+  width: 70px;
+  height: 70px;
+  font-size: 65px;
+  line-height: 70px;
+}
+
+.obstacle {
+  position: absolute;
+  z-index: 2;
+  bottom: 50px;
+  width: 38px;
+  border-radius: 8px 8px 2px 2px;
+  background: #8a4f27;
+  border: 4px solid #633317;
+}
+
+.obstacle::before {
+  content: "🌵";
+  position: absolute;
+  bottom: -18px;
+  left: -15px;
+  font-size: 60px;
+}
+
+.grass {
+  position: absolute;
+  bottom: 42px;
+  width: 100%;
+  height: 18px;
+  background: repeating-linear-gradient(
+    90deg,
+    #4d9e35 0 10px,
+    #61b943 10px 20px
+  );
+}
+
+#message {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: white;
+  background: #163d22aa;
+  padding: 20px;
+}
+
+#message h1 {
+  margin: 0 0 12px;
+  font-size: clamp(32px, 6vw, 55px);
+}
+
+#message p {
+  font-size: 20px;
+  margin: 0 0 22px;
+}
+
+button {
+  border: 0;
+  padding: 13px 28px;
+  border-radius: 30px;
+  background: #ffcc31;
+  color: #553500;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px #ba8700;
+}
+
+button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px #ba8700;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#instructions {
+  position: absolute;
+  z-index: 4;
+  bottom: 12px;
+  width: 100%;
+  text-align: center;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px #28682b;
+}
+

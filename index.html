@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rabbit Run</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(#87ceeb 0 65%, #78c850 65%);
+      overflow: hidden;
+    }
+
+    #game {
+      position: relative;
+      width: min(900px, 95vw);
+      height: min(420px, 70vh);
+      overflow: hidden;
+      border: 5px solid #fff;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at 15% 20%, white 0 25px, transparent 26px),
+        radial-gradient(circle at 70% 14%, white 0 35px, transparent 36px),
+        linear-gradient(#8ed7fa 0 67%, #77c84e 67%);
+      box-shadow: 0 15px 40px #204c2988;
+    }
+
+    #score {
+      position: absolute;
+      z-index: 5;
+      top: 18px;
+      left: 20px;
+      color: white;
+      font-size: 25px;
+      font-weight: bold;
+      text-shadow: 2px 2px 3px #245d2b;
+    }
+
+    #rabbit {
+      position: absolute;
+      z-index: 3;
+      bottom: 55px;
+      left: 90px;
+      width: 70px;
+      height: 70px;
+      font-size: 65px;
+      line-height: 70px;
+      transition: transform 0.05s;
+    }
+
+    .obstacle {
+      position: absolute;
+      z-index: 2;
+      bottom: 50px;
+      width: 38px;
+      border-radius: 8px 8px 2px 2px;
+      background: #8a4f27;
+      border: 4px solid #633317;
+    }
+
+    .obstacle::before {
+      content: "🌵";
+      position: absolute;
+      bottom: -18px;
+      left: -15px;
+      font-size: 60px;
+    }
+
+    .grass {
+      position: absolute;
+      bottom: 42px;
+      width: 100%;
+      height: 18px;
+      background: repeating-linear-gradient(
+        90deg,
+        #4d9e35 0 10px,
+        #61b943 10px 20px
+      );
+    }
+
+    #message {
+      position: absolute;
+      z-index: 10;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: white;
+      background: #163d22aa;
+      padding: 20px;
+    }
+
+    #message h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 6vw, 55px);
+    }
+
+    #message p {
+      font-size: 20px;
+      margin: 0 0 22px;
+    }
+
+    button {
+      border: 0;
+      padding: 13px 28px;
+      border-radius: 30px;
+      background: #ffcc31;
+      color: #553500;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px #ba8700;
+    }
+
+    button:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px #ba8700;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    #instructions {
+      position: absolute;
+      z-index: 4;
+      bottom: 12px;
+      width: 100%;
+      text-align: center;
+      color: white;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px #28682b;
+    }
+  </style>
+</head>
+<body>
+  <div id="game">
+    <div id="score">Score: 0</div>
+    <div id="rabbit">🐇</div>
+    <div class="grass"></div>
+    <div id="instructions">Press SPACE, ↑, or tap to jump</div>
+
+    <div id="message">
+      <div>
+        <h1>🐇 Rabbit Run</h1>
+        <p>Help the rabbit jump over cactus obstacles!</p>
+        <button id="startButton">Start Game</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const game = document.getElementById("game");
+    const rabbit = document.getElementById("rabbit");
+    const scoreText = document.getElementById("score");
+    const message = document.getElementById("message");
+    const startButton = document.getElementById("startButton");
+
+    let running = false;
+    let jumping = false;
+    let score = 0;
+    let speed = 5;
+    let spawnTimer;
+    let gameLoop;
+
+    function jump() {
+      if (!running || jumping) return;
+
+      jumping = true;
+      let height = 0;
+      let up = true;
+
+      const jumpLoop = setInterval(() => {
+        if (up) {
+          height += 10;
+          rabbit.style.bottom = `${55 + height}px`;
+
+          if (height >= 150) up = false;
+        } else {
+          height -= 10;
+          rabbit.style.bottom = `${55 + height}px`;
+
+          if (height <= 0) {
+            rabbit.style.bottom = "55px";
+            jumping = false;
+            clearInterval(jumpLoop);
+          }
+        }
+      }, 20);
+    }
+
+    function createObstacle() {
+      if (!running) return;
+
+      const obstacle = document.createElement("div");
+      obstacle.className = "obstacle";
+      obstacle.style.height = `${45 + Math.random() * 35}px`;
+      obstacle.style.left = `${game.clientWidth}px`;
+      game.appendChild(obstacle);
+
+      const moveObstacle = setInterval(() => {
+        if (!running) {
+          clearInterval(moveObstacle);
+          obstacle.remove();
+          return;
+        }
+
+        let position = parseFloat(obstacle.style.left);
+        position -= speed;
+        obstacle.style.left = `${position}px`;
+
+        const rabbitBox = rabbit.getBoundingClientRect();
+        const obstacleBox = obstacle.getBoundingClientRect();
+
+        const hit =
+          rabbitBox.right - 15 > obstacleBox.left &&
+          rabbitBox.left + 18 < obstacleBox.right &&
+          rabbitBox.bottom - 12 > obstacleBox.top &&
+          rabbitBox.top + 15 < obstacleBox.bottom;
+
+        if (hit) {
+          endGame();
+        }
+
+        if (position < -80) {
+          clearInterval(moveObstacle);
+          obstacle.remove();
+          score++;
+          speed += 0.08;
+          scoreText.textContent = `Score: ${score}`;
+        }
+      }, 16);
+    }
+
+    function startGame() {
+      document.querySelectorAll(".obstacle").forEach(item => item.remove());
+
+      running = true;
+      jumping = false;
+      score = 0;
+      speed = 5;
+      rabbit.style.bottom = "55px";
+      scoreText.textContent = "Score: 0";
+      message.classList.add("hidden");
+
+      spawnTimer = setInterval(createObstacle, 1500);
+
+      gameLoop = setInterval(() => {
+        if (running) scoreText.textContent = `Score: ${score}`;
+      }, 100);
+    }
+
+    function endGame() {
+      if (!running) return;
+
+      running = false;
+      clearInterval(spawnTimer);
+      clearInterval(gameLoop);
+
+      message.innerHTML = `
+        <div>
+          <h1>Game Over! 🥕</h1>
+          <p>Your score: <strong>${score}</strong></p>
+          <button id="restartButton">Play Again</button>
+        </div>
+      `;
+      message.classList.remove("hidden");
+
+      document.getElementById("restartButton").addEventListener("click", startGame);
+    }
+
+    startButton.addEventListener("click", startGame);
+
+    document.addEventListener("keydown", event => {
+      if (event.code === "Space" || event.code === "ArrowUp") {
+        event.preventDefault();
+        jump();
+      }
+    });
+
+    game.addEventListener("click", jump);
+    game.addEventListener("touchstart", event => {
+      event.preventDefault();
+      jump();
+    });
+  </script>
+</body>
+</html>
